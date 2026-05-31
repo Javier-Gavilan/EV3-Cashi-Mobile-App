@@ -30,7 +30,7 @@ Características:
 Instrucciones:
 
 - Dirigirse al directorio *cd (Directorio)*
-- Ejecutar *box expo install*
+- Ejecutar *npx expo install*
 - Ejecutar *npx expo start*
 - Comprobar funcionamiento desde Expo
 - Ingresar con *usuario@correo.com* y *1234* y comprobar el funcionamiento de los botones.
