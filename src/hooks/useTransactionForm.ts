@@ -39,6 +39,15 @@ export function useTransactionForm({
     const [categoryId, setCategoryId] =
         useState("");
 
+    const [photoUri, setPhotoUri] =
+        useState("");
+
+    const [location, setLocation] =
+        useState<{
+            latitude: number;
+            longitude: number;
+        } | null>(null);
+
     const [error, setError] = useState("");
 
     async function loadTransaction() {
@@ -57,6 +66,14 @@ export function useTransactionForm({
             );
 
             setCategoryId(transaction.categoryId);
+
+            setPhotoUri(
+                transaction.photoUri ?? ""
+            );
+
+            setLocation(
+                transaction.location ?? null
+            );
         }
     }
 
@@ -89,6 +106,10 @@ export function useTransactionForm({
             type,
             description,
             categoryId,
+
+            photoUri,
+
+            location: location ?? undefined,
         };
 
         if (isEditing) {
@@ -115,5 +136,9 @@ export function useTransactionForm({
         error,
         isEditing,
         handleSubmit,
+        photoUri,
+        setPhotoUri,
+        location,
+        setLocation,
     };
 }
