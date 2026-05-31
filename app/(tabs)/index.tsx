@@ -108,7 +108,7 @@ export default function TransactionsScreen() {
                 }
               >
                 <Text style={styles.buttonText}>
-                  Editar
+                  Detalles
                 </Text>
               </Pressable>
 
