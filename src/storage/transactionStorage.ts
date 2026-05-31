@@ -29,6 +29,13 @@ interface CreateTransactionData {
   type: TransactionType;
   description: string;
   categoryId: string;
+
+  photoUri?: string;
+
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export async function createTransaction(
@@ -43,6 +50,8 @@ export async function createTransaction(
     description: data.description,
     date: new Date().toISOString(),
     categoryId: data.categoryId,
+    photoUri: data.photoUri,
+    location: data.location,
   };
 
   const updatedTransactions = [

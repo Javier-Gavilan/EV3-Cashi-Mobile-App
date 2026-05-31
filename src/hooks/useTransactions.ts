@@ -17,6 +17,13 @@ interface TransactionData {
   type: TransactionType;
   description: string;
   categoryId: string;
+
+  photoUri?: string;
+
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export function useTransactions() {
