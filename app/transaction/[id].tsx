@@ -154,11 +154,15 @@ export default function TransactionFormScreen() {
                     <View style={styles.pickerContainer}>
                         <Picker
                             selectedValue={categoryId}
-                            onValueChange={setCategoryId}
+                            onValueChange={(value) =>
+                                setCategoryId(
+                                    value ? Number(value) : null
+                                )
+                            }
                         >
                             <Picker.Item
                                 label="Seleccione categoría"
-                                value=""
+                                value={null}
                             />
 
                             {categories.map((category) => (

@@ -7,9 +7,12 @@ export const transactionSchema = z.object({
     })
     .positive("El monto debe ser mayor a 0"),
 
-  type: z.enum(["income", "expense"], {
-    error: "Tipo inválido",
-  }),
+  type: z.enum(
+    ["income", "expense"],
+    {
+      error: "Tipo inválido",
+    }
+  ),
 
   description: z
     .string()
@@ -17,6 +20,8 @@ export const transactionSchema = z.object({
     .trim(),
 
   categoryId: z
-    .string()
-    .min(1, "Debe seleccionar una categoría"),
+    .number({
+      error: "Debe seleccionar una categoría",
+    })
+    .positive("Debe seleccionar una categoría"),
 });

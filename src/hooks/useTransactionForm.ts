@@ -58,10 +58,8 @@ export function useTransactionForm({
         setDescription,
     ] = useState("");
 
-    const [
-        categoryId,
-        setCategoryId,
-    ] = useState("");
+    const [categoryId, setCategoryId] =
+        useState<number | null>(null);
 
     const [
         photoUri,
@@ -108,17 +106,24 @@ export function useTransactionForm({
                 );
 
                 setCategoryId(
-                    transaction.categoryId.toString()
+                    transaction.categoryId
                 );
 
                 setPhotoUri(
-                    transaction.photoUrl ??
+                    transaction.receiptUrl ??
                     ""
                 );
 
                 setLocation(
-                    transaction.location ??
-                    null
+                    transaction.latitude != null &&
+                    transaction.longitude != null
+                        ? {
+                            latitude:
+                                transaction.latitude,
+                            longitude:
+                                transaction.longitude,
+                        }
+                        : null
                 );
             }
         } catch (error) {
@@ -142,7 +147,8 @@ export function useTransactionForm({
                 amount: parsedAmount,
                 type,
                 description,
-                categoryId,
+                categoryId:
+                    parsedCategoryId,
             });
 
         if (!result.success) {
@@ -159,7 +165,8 @@ export function useTransactionForm({
 
             let uploadedPhotoUrl:
                 | string
-                | undefined;
+                | undefined =
+                undefined;
 
             if (
                 photoUri !== "" &&
@@ -175,6 +182,7 @@ export function useTransactionForm({
                             photoUri,
                             token
                         );
+
                     uploadedPhotoUrl =
                         uploadResponse.imageUrl;
                 } else {
@@ -189,11 +197,18 @@ export function useTransactionForm({
                 description,
                 categoryId:
                     parsedCategoryId,
-                photoUrl:
-                    uploadedPhotoUrl,
-                location:
-                    location ??
-                    undefined,
+                date:
+                    new Date().toISOString(),
+                ...(uploadedPhotoUrl && {
+                    receiptUrl:
+                        uploadedPhotoUrl,
+                }),
+                ...(location && {
+                    latitude:
+                        location.latitude,
+                    longitude:
+                        location.longitude,
+                }),
             };
 
             if (isEditing) {
@@ -226,18 +241,26 @@ export function useTransactionForm({
     return {
         amount,
         setAmount,
+
         type,
         setType,
+
         description,
         setDescription,
+
         categoryId,
         setCategoryId,
+
         photoUri,
         setPhotoUri,
+
         location,
         setLocation,
+
         error,
+
         isEditing,
+
         handleSubmit,
     };
 }

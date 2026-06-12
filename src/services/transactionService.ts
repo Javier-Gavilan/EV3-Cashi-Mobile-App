@@ -9,11 +9,9 @@ interface TransactionPayload {
     type: "income" | "expense";
     description: string;
     categoryId: number;
-    photoUrl?: string;
-    location?: {
-        latitude: number;
-        longitude: number;
-    };
+    receiptUrl?: string;
+    latitude?: number;
+    longitude?: number;
 }
 
 interface BalanceResponse {
