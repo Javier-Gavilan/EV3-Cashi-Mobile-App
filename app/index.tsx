@@ -11,14 +11,10 @@ import {
 import {
   Pressable,
   StyleSheet,
-  TextInput
+  TextInput,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
-
-import {
-  login,
-} from "@/src/services/authService";
 
 import {
   useAuth,
@@ -27,7 +23,7 @@ import {
 export default function LoginScreen() {
   const router = useRouter();
 
-  const { signIn } = useAuth();
+  const { login } = useAuth();
 
   const [email, setEmail] =
     useState("");
@@ -47,14 +43,9 @@ export default function LoginScreen() {
 
       setError("");
 
-      const response =
-        await login({
-          email,
-          password,
-        });
-
-      await signIn(
-        response.token
+      await login(
+        email,
+        password
       );
 
       router.replace("/(tabs)");

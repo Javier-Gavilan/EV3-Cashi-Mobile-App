@@ -8,14 +8,24 @@ import {
 
 import * as SecureStore from "expo-secure-store";
 
+import { apiRequest } from "@/src/services/api";
+
 interface AuthContextData {
     token: string | null;
 
     loading: boolean;
 
-    signIn: (token: string) => Promise<void>;
+    login: (
+        email: string,
+        password: string
+    ) => Promise<void>;
 
-    signOut: () => Promise<void>;
+    register: (
+        email: string,
+        password: string
+    ) => Promise<void>;
+
+    logout: () => Promise<void>;
 }
 
 const AuthContext =
@@ -53,18 +63,53 @@ export function AuthProvider({
         }
     }
 
-    async function signIn(
-        newToken: string
+    async function login(
+        email: string,
+        password: string
     ) {
+        const response = await apiRequest<{
+            token: string;
+        }>("/auth/login", {
+            method: "POST",
+
+            body: JSON.stringify({
+                email,
+                password,
+            }),
+        });
+
         await SecureStore.setItemAsync(
             "token",
-            newToken
+            response.token
         );
 
-        setToken(newToken);
+        setToken(response.token);
     }
 
-    async function signOut() {
+    async function register(
+        email: string,
+        password: string
+    ) {
+        const response = await apiRequest<{
+            token: string;
+        }>("/auth/register", {
+            method: "POST",
+
+            body: JSON.stringify({
+                email,
+                password,
+            }),
+        });
+
+        await SecureStore.setItemAsync(
+            "token",
+            response.token
+        );
+
+        setToken(response.token);
+    }
+
+    async function logout() {
         await SecureStore.deleteItemAsync(
             "token"
         );
@@ -81,8 +126,9 @@ export function AuthProvider({
             value={{
                 token,
                 loading,
-                signIn,
-                signOut,
+                login,
+                register,
+                logout,
             }}
         >
             {children}
