@@ -1,44 +1,88 @@
 import { Text } from "@/components/Themed";
+
 import {
-  VALID_EMAIL,
-  VALID_PASSWORD,
-} from "@/src/constants/auth";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
+  useRouter,
+} from "expo-router";
+
+import {
+  useState,
+} from "react";
+
+import {
+  Pressable,
+  StyleSheet,
+  TextInput
+} from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import {
+  login,
+} from "@/src/services/authService";
+
+import {
+  useAuth,
+} from "@/src/contexts/AuthContext";
 
 export default function LoginScreen() {
   const router = useRouter();
 
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
+  const { signIn } = useAuth();
 
-  const handleLogin = () => {
-    if (email === VALID_EMAIL && password === VALID_PASSWORD) {
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  const [error, setError] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  async function handleLogin() {
+    try {
+      setLoading(true);
+
       setError("");
 
-      router.push({
-        pathname: "/(tabs)",
-        params: { email: email },
-      });
-    } else {
-      setError("Email o contraseña incorrectos");
+      const response =
+        await login({
+          email,
+          password,
+        });
+
+      await signIn(
+        response.token
+      );
+
+      router.replace("/(tabs)");
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError(
+          "Error al iniciar sesión"
+        );
+      }
+    } finally {
+      setLoading(false);
     }
-  };
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>
+        Login
+      </Text>
 
       <TextInput
         style={styles.input}
         placeholder="Correo electrónico"
         autoCapitalize="none"
         value={email}
-        onChangeText={(text) => setEmail(text)}
+        onChangeText={setEmail}
       />
 
       <TextInput
@@ -46,14 +90,36 @@ export default function LoginScreen() {
         placeholder="Contraseña"
         secureTextEntry
         value={password}
-        onChangeText={(text) => setPassword(text)}
+        onChangeText={setPassword}
       />
 
-      {error !== "" && <Text style={styles.error}>{error}</Text>}
+      {error !== "" && (
+        <Text style={styles.error}>
+          {error}
+        </Text>
+      )}
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Iniciar sesión</Text>
-      </TouchableOpacity>
+      <Pressable
+        style={styles.button}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading
+            ? "Cargando..."
+            : "Iniciar sesión"}
+        </Text>
+      </Pressable>
+
+      <Pressable
+        onPress={() =>
+          router.push("/register")
+        }
+      >
+        <Text style={styles.link}>
+          Crear cuenta
+        </Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -61,45 +127,69 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+
     justifyContent: "center",
-    alignItems: "center",
+
     padding: 20,
   },
 
   title: {
-    fontSize: 24,
+    fontSize: 28,
+
     fontWeight: "bold",
+
     marginBottom: 30,
+
+    textAlign: "center",
   },
 
   input: {
-    width: "100%",
-    height: 45,
     borderWidth: 1,
+
     borderColor: "#ccc",
+
     borderRadius: 8,
-    paddingHorizontal: 10,
+
+    padding: 12,
+
     marginBottom: 15,
+
     backgroundColor: "#fff",
   },
 
   button: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "#00ffdda3",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "#22c55e",
+
+    padding: 14,
+
     borderRadius: 8,
+
+    alignItems: "center",
+
     marginTop: 10,
   },
 
   buttonText: {
     color: "#fff",
+
     fontWeight: "bold",
   },
 
   error: {
     color: "red",
-    marginBottom: 10,
+
+    marginBottom: 12,
+
+    textAlign: "center",
+  },
+
+  link: {
+    marginTop: 20,
+
+    textAlign: "center",
+
+    color: "#2563eb",
+
+    fontWeight: "bold",
   },
 });
