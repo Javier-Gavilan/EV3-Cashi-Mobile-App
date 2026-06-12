@@ -118,13 +118,6 @@ function RootLayoutNav() {
               title: "Categoría",
             }}
           />
-
-          <Stack.Screen
-            name="modal"
-            options={{
-              presentation: "modal",
-            }}
-          />
         </Stack>
       )}
     </ThemeProvider>

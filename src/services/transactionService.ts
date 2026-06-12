@@ -97,3 +97,31 @@ export async function getBalance(
         }
     );
 }
+
+export async function uploadTransactionImage(
+    imageUri: string,
+    token: string
+) {
+    const formData = new FormData();
+
+    formData.append(
+        "file",
+        {
+            uri: imageUri,
+            name: "receipt.jpg",
+            type: "image/jpeg",
+        } as any
+    );
+
+    return apiRequest<{
+        imageUrl: string;
+    }>(
+        "/transactions/upload",
+        {
+            method: "POST",
+            token,
+            body: formData,
+            isFormData: true,
+        }
+    );
+}

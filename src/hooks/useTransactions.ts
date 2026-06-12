@@ -16,9 +16,7 @@ import {
   updateTransaction,
 } from "@/src/services/transactionService";
 
-import {
-  useAuth,
-} from "@/src/contexts/AuthContext";
+import { useAuth } from "@/src/contexts/AuthContext";
 
 interface TransactionData {
   amount: number;

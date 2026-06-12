@@ -23,7 +23,6 @@ export async function apiRequest<T>(
             `${BASE_URL}${endpoint}`,
             {
                 method,
-
                 headers: {
                     ...(token && {
                         Authorization: `Bearer ${token}`,
@@ -34,7 +33,6 @@ export async function apiRequest<T>(
                             "application/json",
                     }),
                 },
-
                 body: body
                     ? isFormData
                         ? (body as BodyInit)
@@ -43,10 +41,24 @@ export async function apiRequest<T>(
             }
         );
 
-        const data = await response.json();
+        const text =
+            await response.text();
+
+        let data: any = null;
+
+        try {
+            data = text
+                ? JSON.parse(text)
+                : null;
+        } catch {
+            throw new Error(
+                "Error del servidor"
+            );
+        }
 
         if (!response.ok) {
             throw new Error(
+                data?.message ||
                 data?.error ||
                 "Error del servidor"
             );

@@ -1,23 +1,40 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  Category,
+} from "@/src/types/category.types";
 
 import {
   createCategory,
   deleteCategory,
   getCategories,
   updateCategory,
-} from "@/src/storage/categoryStorage";
+} from "@/src/services/categoryService";
 
-import { Category } from "@/src/types/category.types";
-
-import { getTransactions } from "@/src/storage/transactionStorage";
+import {
+  useAuth,
+} from "@/src/contexts/AuthContext";
 
 export function useCategories() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { token } = useAuth();
+
+  const [categories, setCategories] =
+    useState<Category[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
 
   async function loadCategories() {
+    if (!token) return;
+
     try {
-      const data = await getCategories();
+      setLoading(true);
+
+      const data =
+        await getCategories(token);
 
       setCategories(data);
     } catch (error) {
@@ -27,51 +44,56 @@ export function useCategories() {
     }
   }
 
-  async function addCategory(name: string) {
-    await createCategory(name);
+  async function addCategory(
+    name: string
+  ) {
+    if (!token) return;
+
+    await createCategory(
+      name,
+      token
+    );
 
     await loadCategories();
   }
 
   async function editCategory(
-    id: string,
+    id: number,
     name: string
   ) {
-    await updateCategory(id, name);
+    if (!token) return;
+
+    await updateCategory(
+      id,
+      name,
+      token
+    );
 
     await loadCategories();
   }
 
-  async function removeCategory(id: string) {
-    const transactions =
-      await getTransactions();
+  async function removeCategory(
+    id: number
+  ) {
+    if (!token) return;
 
-    const categoryHasTransactions =
-      transactions.some(
-        (transaction) =>
-          transaction.categoryId === id
-      );
-
-    if (categoryHasTransactions) {
-      throw new Error(
-        "No puedes eliminar una categoría asociada a una transacción existente"
-      );
-    }
-    await deleteCategory(id);
-
+    await deleteCategory(
+      id,
+      token
+    );
     await loadCategories();
   }
 
   useEffect(() => {
     loadCategories();
-  }, []);
+  }, [token]);
 
   return {
     categories,
     loading,
+    loadCategories,
     addCategory,
     editCategory,
     removeCategory,
-    loadCategories,
   };
 }

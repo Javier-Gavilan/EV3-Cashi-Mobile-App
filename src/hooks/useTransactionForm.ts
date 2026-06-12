@@ -1,19 +1,32 @@
-import { useEffect, useState } from "react";
-
-import { transactionSchema } from "@/src/schemas/transaction.schema";
+import {
+    useEffect,
+    useState,
+} from "react";
 
 import {
-    getTransactionById,
-} from "@/src/storage/transactionStorage";
+    transactionSchema,
+} from "@/src/schemas/transaction.schema";
 
-import { useTransactions } from "@/src/hooks/useTransactions";
+import {
+    useTransactions,
+} from "@/src/hooks/useTransactions";
 
 import {
     TransactionType,
 } from "@/src/types/transaction.types";
 
+import {
+    getTransactionById,
+    uploadTransactionImage,
+} from "@/src/services/transactionService";
+
+import {
+    useAuth,
+} from "@/src/contexts/AuthContext";
+
 interface UseTransactionFormProps {
     id: string;
+
     onSuccess: () => void;
 }
 
@@ -21,109 +34,195 @@ export function useTransactionForm({
     id,
     onSuccess,
 }: UseTransactionFormProps) {
-    const isEditing = id !== "new";
+    const isEditing =
+        id !== "new";
+
+    const { token } =
+        useAuth();
 
     const {
         addTransaction,
         editTransaction,
     } = useTransactions();
 
-    const [amount, setAmount] = useState("");
+    const [amount, setAmount] =
+        useState("");
 
     const [type, setType] =
-        useState<TransactionType>("expense");
+        useState<TransactionType>(
+            "expense"
+        );
 
-    const [description, setDescription] =
+    const [
+        description,
+        setDescription,
+    ] = useState("");
+
+    const [
+        categoryId,
+        setCategoryId,
+    ] = useState("");
+
+    const [
+        photoUri,
+        setPhotoUri,
+    ] = useState("");
+
+    const [
+        location,
+        setLocation,
+    ] = useState<{
+        latitude: number;
+        longitude: number;
+    } | null>(null);
+
+    const [error, setError] =
         useState("");
-
-    const [categoryId, setCategoryId] =
-        useState("");
-
-    const [photoUri, setPhotoUri] =
-        useState("");
-
-    const [location, setLocation] =
-        useState<{
-            latitude: number;
-            longitude: number;
-        } | null>(null);
-
-    const [error, setError] = useState("");
 
     async function loadTransaction() {
-        if (!isEditing) return;
+        if (
+            !isEditing ||
+            !token
+        ) {
+            return;
+        }
 
-        const transaction =
-            await getTransactionById(id);
+        try {
+            const transaction =
+                await getTransactionById(
+                    Number(id),
+                    token
+                );
 
-        if (transaction) {
-            setAmount(transaction.amount.toString());
+            if (transaction) {
+                setAmount(
+                    transaction.amount.toString()
+                );
 
-            setType(transaction.type);
+                setType(
+                    transaction.type
+                );
 
-            setDescription(
-                transaction.description
-            );
+                setDescription(
+                    transaction.description
+                );
 
-            setCategoryId(transaction.categoryId);
+                setCategoryId(
+                    transaction.categoryId.toString()
+                );
 
-            setPhotoUri(
-                transaction.photoUri ?? ""
-            );
+                setPhotoUri(
+                    transaction.photoUrl ??
+                    ""
+                );
 
-            setLocation(
-                transaction.location ?? null
-            );
+                setLocation(
+                    transaction.location ??
+                    null
+                );
+            }
+        } catch (error) {
+            console.error(error);
         }
     }
 
     useEffect(() => {
         loadTransaction();
-    }, []);
+    }, [token]);
 
     async function handleSubmit() {
-        const parsedAmount = Number(amount);
+        const parsedAmount =
+            Number(amount);
 
-        const result = transactionSchema.safeParse({
-            amount: parsedAmount,
-            type,
-            description,
-            categoryId,
-        });
+        const parsedCategoryId =
+            Number(categoryId);
+
+        const result =
+            transactionSchema.safeParse({
+                amount: parsedAmount,
+                type,
+                description,
+                categoryId,
+            });
 
         if (!result.success) {
             setError(
-                result.error.issues[0].message
+                result.error.issues[0]
+                    .message
             );
 
             return;
         }
 
-        setError("");
+        try {
+            setError("");
 
-        const transactionData = {
-            amount: parsedAmount,
-            type,
-            description,
-            categoryId,
+            let uploadedPhotoUrl:
+                | string
+                | undefined;
 
-            photoUri,
+            if (
+                photoUri !== "" &&
+                token
+            ) {
+                if (
+                    photoUri.startsWith(
+                        "file://"
+                    )
+                ) {
+                    const uploadResponse =
+                        await uploadTransactionImage(
+                            photoUri,
+                            token
+                        );
+                    uploadedPhotoUrl =
+                        uploadResponse.imageUrl;
+                } else {
+                    uploadedPhotoUrl =
+                        photoUri;
+                }
+            }
 
-            location: location ?? undefined,
-        };
+            const transactionData = {
+                amount: parsedAmount,
+                type,
+                description,
+                categoryId:
+                    parsedCategoryId,
+                photoUrl:
+                    uploadedPhotoUrl,
+                location:
+                    location ??
+                    undefined,
+            };
 
-        if (isEditing) {
-            await editTransaction(
-                id,
-                transactionData
-            );
-        } else {
-            await addTransaction(
-                transactionData
-            );
+            if (isEditing) {
+                await editTransaction(
+                    Number(id),
+                    transactionData
+                );
+            } else {
+                await addTransaction(
+                    transactionData
+                );
+            }
+
+            onSuccess();
+        } catch (error) {
+            if (
+                error instanceof Error
+            ) {
+                setError(
+                    error.message
+                );
+            } else {
+                setError(
+                    "Error al guardar"
+                );
+            }
         }
-        onSuccess();
     }
+
     return {
         amount,
         setAmount,
@@ -133,12 +232,12 @@ export function useTransactionForm({
         setDescription,
         categoryId,
         setCategoryId,
-        error,
-        isEditing,
-        handleSubmit,
         photoUri,
         setPhotoUri,
         location,
         setLocation,
+        error,
+        isEditing,
+        handleSubmit,
     };
 }

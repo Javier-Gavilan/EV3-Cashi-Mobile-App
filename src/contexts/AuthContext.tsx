@@ -72,10 +72,10 @@ export function AuthProvider({
         }>("/auth/login", {
             method: "POST",
 
-            body: JSON.stringify({
+            body: {
                 email,
                 password,
-            }),
+            },
         });
 
         await SecureStore.setItemAsync(
@@ -95,10 +95,10 @@ export function AuthProvider({
         }>("/auth/register", {
             method: "POST",
 
-            body: JSON.stringify({
+            body: {
                 email,
                 password,
-            }),
+            },
         });
 
         await SecureStore.setItemAsync(

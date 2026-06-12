@@ -1,12 +1,23 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
-import { categorySchema } from "@/src/schemas/category.schema";
+import {
+  categorySchema,
+} from "@/src/schemas/category.schema";
+
+import {
+  useCategories,
+} from "@/src/hooks/useCategories";
 
 import {
   getCategoryById,
-} from "@/src/storage/categoryStorage";
+} from "@/src/services/categoryService";
 
-import { useCategories } from "@/src/hooks/useCategories";
+import {
+  useAuth,
+} from "@/src/contexts/AuthContext";
 
 interface UseCategoryFormProps {
   id: string;
@@ -19,28 +30,35 @@ export function useCategoryForm({
 }: UseCategoryFormProps) {
   const isEditing = id !== "new";
 
+  const { token } = useAuth();
+
   const {
     addCategory,
     editCategory,
   } = useCategories();
 
-  const [name, setName] = useState("");
+  const [name, setName] =
+    useState("");
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
   async function loadCategory() {
-    if (!isEditing) return;
+    if (!isEditing || !token) return;
 
     try {
       setLoading(true);
 
-      const category = await getCategoryById(id);
+      const category =
+        await getCategoryById(
+          Number(id),
+          token
+        );
 
-      if (category) {
-        setName(category.name);
-      }
+      setName(category.name);
     } catch (error) {
       console.error(error);
     } finally {
@@ -50,12 +68,13 @@ export function useCategoryForm({
 
   useEffect(() => {
     loadCategory();
-  }, []);
+  }, [token]);
 
   async function handleSubmit() {
-    const result = categorySchema.safeParse({
-      name,
-    });
+    const result =
+      categorySchema.safeParse({
+        name,
+      });
 
     if (!result.success) {
       setError(
@@ -68,7 +87,10 @@ export function useCategoryForm({
     setError("");
 
     if (isEditing) {
-      await editCategory(id, name);
+      await editCategory(
+        Number(id),
+        name
+      );
     } else {
       await addCategory(name);
     }
