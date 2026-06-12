@@ -184,7 +184,7 @@ export function useTransactionForm({
                         );
 
                     uploadedPhotoUrl =
-                        uploadResponse.imageUrl;
+                        uploadResponse.receiptUrl;
                 } else {
                     uploadedPhotoUrl =
                         photoUri;

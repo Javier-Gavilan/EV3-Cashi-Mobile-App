@@ -103,7 +103,7 @@ export async function uploadTransactionImage(
     const formData = new FormData();
 
     formData.append(
-        "file",
+        "receipt",
         {
             uri: imageUri,
             name: "receipt.jpg",
@@ -112,7 +112,7 @@ export async function uploadTransactionImage(
     );
 
     return apiRequest<{
-        imageUrl: string;
+        receiptUrl: string;
     }>(
         "/transactions/upload",
         {
