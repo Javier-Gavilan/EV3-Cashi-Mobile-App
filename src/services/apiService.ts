@@ -2,11 +2,8 @@ const BASE_URL = "https://cashi-api-un4v.onrender.com";
 
 interface RequestOptions {
     method?: string;
-
     token?: string;
-
     body?: unknown;
-
     isFormData?: boolean;
 }
 

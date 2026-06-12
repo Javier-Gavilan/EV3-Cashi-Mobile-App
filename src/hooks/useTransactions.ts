@@ -1,25 +1,31 @@
-import { useEffect, useMemo, useState } from "react";
-
 import {
-  createTransaction,
-  deleteTransaction,
-  getTransactions,
-  updateTransaction,
-} from "@/src/storage/transactionStorage";
+  useEffect,
+  useState,
+} from "react";
 
 import {
   Transaction,
   TransactionType,
 } from "@/src/types/transaction.types";
 
+import {
+  createTransaction,
+  deleteTransaction,
+  getBalance,
+  getTransactions,
+  updateTransaction,
+} from "@/src/services/transactionService";
+
+import {
+  useAuth,
+} from "@/src/contexts/AuthContext";
+
 interface TransactionData {
   amount: number;
   type: TransactionType;
   description: string;
-  categoryId: string;
-
-  photoUri?: string;
-
+  categoryId: number;
+  photoUrl?: string;
   location?: {
     latitude: number;
     longitude: number;
@@ -27,14 +33,48 @@ interface TransactionData {
 }
 
 export function useTransactions() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { token } = useAuth();
+
+  const [transactions, setTransactions] =
+    useState<Transaction[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [balance, setBalance] =
+    useState(0);
+
+  const [totalIncome, setTotalIncome] =
+    useState(0);
+
+  const [totalExpense, setTotalExpense] =
+    useState(0);
 
   async function loadTransactions() {
+    if (!token) return;
+
     try {
-      const data = await getTransactions();
+      setLoading(true);
+
+      const data =
+        await getTransactions(token);
 
       setTransactions(data);
+
+      const balanceData =
+        await getBalance(token);
+
+      setBalance(
+        balanceData.balance
+      );
+
+      setTotalIncome(
+        balanceData.income
+      );
+
+      setTotalExpense(
+        balanceData.expense
+      );
     } catch (error) {
       console.error(error);
     } finally {
@@ -45,73 +85,57 @@ export function useTransactions() {
   async function addTransaction(
     data: TransactionData
   ) {
-    await createTransaction(data);
+    if (!token) return;
+
+    await createTransaction(
+      data,
+      token
+    );
 
     await loadTransactions();
   }
 
   async function editTransaction(
-    id: string,
+    id: number,
     data: TransactionData
   ) {
-    await updateTransaction(id, data);
+    if (!token) return;
+
+    await updateTransaction(
+      id,
+      data,
+      token
+    );
 
     await loadTransactions();
   }
 
-  async function removeTransaction(id: string) {
-    await deleteTransaction(id);
+  async function removeTransaction(
+    id: number
+  ) {
+    if (!token) return;
+
+    await deleteTransaction(
+      id,
+      token
+    );
 
     await loadTransactions();
   }
-
-  const totalIncome = useMemo(() => {
-    return transactions
-      .filter(
-        (transaction) =>
-          transaction.type === "income"
-      )
-      .reduce(
-        (total, transaction) =>
-          total + transaction.amount,
-        0
-      );
-  }, [transactions]);
-
-  const totalExpense = useMemo(() => {
-    return transactions
-      .filter(
-        (transaction) =>
-          transaction.type === "expense"
-      )
-      .reduce(
-        (total, transaction) =>
-          total + transaction.amount,
-        0
-      );
-  }, [transactions]);
-
-  const balance = useMemo(() => {
-    return totalIncome - totalExpense;
-  }, [totalIncome, totalExpense]);
 
   useEffect(() => {
     loadTransactions();
-  }, []);
+  }, [token]);
 
   return {
     transactions,
-
     loading,
-
+    balance,
     totalIncome,
     totalExpense,
-    balance,
-
     addTransaction,
     editTransaction,
     removeTransaction,
-
     loadTransactions,
   };
 }

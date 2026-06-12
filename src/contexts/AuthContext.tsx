@@ -8,7 +8,7 @@ import {
 
 import * as SecureStore from "expo-secure-store";
 
-import { apiRequest } from "@/src/services/api";
+import { apiRequest } from "@/src/services/apiService";
 
 interface AuthContextData {
     token: string | null;

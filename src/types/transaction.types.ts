@@ -1,19 +1,17 @@
-export type TransactionType = "income" | "expense";
-
-export interface TransactionLocation {
-  latitude: number;
-  longitude: number;
-}
+export type TransactionType =
+  | "income"
+  | "expense";
 
 export interface Transaction {
-  id: string;
+  id: number;
   amount: number;
   type: TransactionType;
   description: string;
   date: string;
-  categoryId: string;
-
-  photoUri?: string;
-
-  location?: TransactionLocation;
+  categoryId: number;
+  photoUrl?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
 }
